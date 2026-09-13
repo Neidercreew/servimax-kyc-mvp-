@@ -17,6 +17,7 @@ import type { RootStackParamList } from '../navigation/AppNavigator';
 import { colors } from '../theme/colors';
 import ProgressSteps from '../components/ProgressSteps';
 import BackButton from '../components/BackButton';
+import ErrorState from '../components/ErrorState';
 
 type Side = 'front' | 'back';
 
@@ -33,6 +34,7 @@ export default function DocumentCaptureScreen() {
   const [backImage, setBackImage] = useState<string | null>(null);
   const [frameHeight, setFrameHeight] = useState(0);
   const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState(false);
 
   const currentImage = side === 'front' ? frontImage : backImage;
 
@@ -100,6 +102,7 @@ export default function DocumentCaptureScreen() {
     }
 
     setUploading(true);
+    setUploadError(false);
     try {
       const frontBlob = await uriToBlob(frontImage!);
       const backBlob = await uriToBlob(backImage!);
@@ -108,14 +111,16 @@ export default function DocumentCaptureScreen() {
       formData.append('front', frontBlob, 'front.jpg');
       formData.append('back', backBlob, 'back.jpg');
 
-      await fetch(`http://192.168.1.6:3000/applications/${applicationId}/documents`, {
-        method: 'POST',
-        body: formData,
-      });
+      const response = await fetch(
+        `http://192.168.1.6:3000/applications/${applicationId}/documents`,
+        { method: 'POST', body: formData }
+      );
+
+      if (!response.ok) throw new Error('Error subiendo documentos');
 
       navigation.navigate('DocumentReview', { applicationId });
-    } catch (error) {
-      console.error('Error subiendo documentos:', error);
+    } catch (err) {
+      setUploadError(true);
     } finally {
       setUploading(false);
     }
@@ -128,6 +133,15 @@ export default function DocumentCaptureScreen() {
       navigation.goBack();
     }
   };
+
+  if (uploadError) {
+    return (
+      <ErrorState
+        message="No pudimos subir tus documentos. Verifica tu conexión e intenta de nuevo."
+        onRetry={() => setUploadError(false)}
+      />
+    );
+  }
 
   return (
     <View style={styles.container}>

@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -13,6 +14,7 @@ import type { RootStackParamList } from '../navigation/AppNavigator';
 import { colors } from '../theme/colors';
 import ProgressSteps from '../components/ProgressSteps';
 import BackButton from '../components/BackButton';
+import ErrorState from '../components/ErrorState';
 
 export default function DocumentReviewScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
@@ -20,34 +22,59 @@ export default function DocumentReviewScreen() {
   const { applicationId } = route.params;
 
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+  const [validating, setValidating] = useState(false);
   const [nombres, setNombres] = useState('');
   const [apellidos, setApellidos] = useState('');
   const [numeroDocumento, setNumeroDocumento] = useState('');
   const [fechaNacimiento, setFechaNacimiento] = useState('');
 
+  const runOcr = async () => {
+    setError(false);
+    setLoading(true);
+    try {
+      const response = await fetch(
+        `http://192.168.1.6:3000/applications/${applicationId}/ocr`,
+        { method: 'POST' }
+      );
+      if (!response.ok) throw new Error('OCR falló');
+      const data = await response.json();
+      setNombres(data.nombres);
+      setApellidos(data.apellidos);
+      setNumeroDocumento(data.numeroDocumento);
+      setFechaNacimiento(data.fechaNacimiento);
+    } catch (err) {
+      setError(true);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const runOcr = async () => {
-      try {
-        const response = await fetch(
-          `http://192.168.1.6:3000/applications/${applicationId}/ocr`,
-          { method: 'POST' }
-        );
-        const data = await response.json();
-        setNombres(data.nombres);
-        setApellidos(data.apellidos);
-        setNumeroDocumento(data.numeroDocumento);
-        setFechaNacimiento(data.fechaNacimiento);
-      } catch (error) {
-        console.error('Error en OCR:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
     runOcr();
   }, []);
 
-  const handleConfirm = () => {
-    navigation.navigate('DocumentReview', { applicationId });
+  const handleConfirm = async () => {
+    setValidating(true);
+    try {
+      const response = await fetch(
+        `http://192.168.1.6:3000/applications/${applicationId}/validate`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ nombres, apellidos, numeroDocumento, fechaNacimiento }),
+        }
+      );
+      if (!response.ok) throw new Error('Validación falló');
+      navigation.navigate('Result', { applicationId });
+    } catch (err) {
+      Alert.alert(
+        'Sin conexión',
+        'No pudimos validar tu información. Revisa tu conexión e intenta de nuevo.'
+      );
+    } finally {
+      setValidating(false);
+    }
   };
 
   if (loading) {
@@ -56,6 +83,15 @@ export default function DocumentReviewScreen() {
         <ActivityIndicator size="large" color={colors.primary} />
         <Text style={styles.loadingText}>Procesando tu documento...</Text>
       </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <ErrorState
+        message="No pudimos leer tu documento. Intenta de nuevo o completa los datos manualmente."
+        onRetry={runOcr}
+      />
     );
   }
 
@@ -70,9 +106,9 @@ export default function DocumentReviewScreen() {
       </Text>
       <View style={styles.testBanner}>
         <Text style={styles.testBannerText}>
-            🧪 Modo prueba: estos datos son generados por un OCR simulado, no por análisis real de tu foto.
+          🧪 Modo prueba: estos datos son generados por un OCR simulado, no por análisis real de tu foto.
         </Text>
-    </View>
+      </View>
 
       <Text style={styles.label}>Nombres</Text>
       <TextInput style={styles.input} value={nombres} onChangeText={setNombres} />
@@ -95,8 +131,12 @@ export default function DocumentReviewScreen() {
         onChangeText={setFechaNacimiento}
       />
 
-      <TouchableOpacity style={styles.button} onPress={handleConfirm}>
-        <Text style={styles.buttonText}>Confirmar y continuar</Text>
+      <TouchableOpacity style={styles.button} onPress={handleConfirm} disabled={validating}>
+        {validating ? (
+          <ActivityIndicator color="#fff" />
+        ) : (
+          <Text style={styles.buttonText}>Confirmar y continuar</Text>
+        )}
       </TouchableOpacity>
     </View>
   );

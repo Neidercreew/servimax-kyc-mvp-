@@ -4,12 +4,13 @@ import WelcomeScreen from '../screens/WelcomeScreen';
 import ContactDataScreen from '../screens/ContactDataScreen';
 import DocumentCaptureScreen from '../screens/DocumentCaptureScreen';
 import DocumentReviewScreen from '../screens/DocumentReviewScreen';
-
+import ResultScreen from '../screens/ResultScreen';
 export type RootStackParamList = {
   Welcome: undefined;
   ContactData: undefined;
   DocumentCapture: { applicationId: number };
   DocumentReview: { applicationId: number };
+  Result: { applicationId: number };
 };
 
 
@@ -23,6 +24,7 @@ export default function AppNavigator() {
         <Stack.Screen name="ContactData" component={ContactDataScreen} />
         <Stack.Screen name="DocumentCapture" component={DocumentCaptureScreen} />
         <Stack.Screen name="DocumentReview" component={DocumentReviewScreen} />
+        <Stack.Screen name="Result" component={ResultScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

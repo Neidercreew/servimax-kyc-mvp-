@@ -85,6 +85,20 @@ app.post('/applications/:id/validate', async (req, res) => {
     where: { id: Number(id) },
   });
 
+  app.get('/applications/:id', async (req, res) => {
+  const { id } = req.params;
+
+  const application = await prisma.application.findUnique({
+    where: { id: Number(id) },
+  });
+
+  if (!application) {
+    return res.status(404).json({ error: 'Solicitud no encontrada' });
+  }
+
+  res.json(application);
+});
+
   if (!existing) {
     return res.status(404).json({ error: 'Solicitud no encontrada' });
   }
