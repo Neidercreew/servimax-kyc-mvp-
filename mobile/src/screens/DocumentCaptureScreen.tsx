@@ -6,11 +6,12 @@ import {
   StyleSheet,
   Animated,
   Image,
+  ActivityIndicator,
 } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/AppNavigator';
 import { colors } from '../theme/colors';
@@ -21,6 +22,9 @@ type Side = 'front' | 'back';
 
 export default function DocumentCaptureScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const route = useRoute<RouteProp<RootStackParamList, 'DocumentCapture'>>();
+  const { applicationId } = route.params;
+
   const [permission, requestPermission] = useCameraPermissions();
   const cameraRef = useRef<CameraView>(null);
 
@@ -28,6 +32,7 @@ export default function DocumentCaptureScreen() {
   const [frontImage, setFrontImage] = useState<string | null>(null);
   const [backImage, setBackImage] = useState<string | null>(null);
   const [frameHeight, setFrameHeight] = useState(0);
+  const [uploading, setUploading] = useState(false);
 
   const currentImage = side === 'front' ? frontImage : backImage;
 
@@ -67,6 +72,7 @@ export default function DocumentCaptureScreen() {
 
     const result = await ImagePicker.launchImageLibraryAsync({
       quality: 0.7,
+      allowsEditing: true,
       aspect: [16, 10],
     });
 
@@ -82,11 +88,36 @@ export default function DocumentCaptureScreen() {
     else setBackImage(null);
   };
 
-  const handleUsePhoto = () => {
+  const uriToBlob = async (uri: string): Promise<Blob> => {
+    const response = await fetch(uri);
+    return await response.blob();
+  };
+
+  const handleUsePhoto = async () => {
     if (side === 'front') {
       setSide('back');
-    } else {
-      navigation.navigate('DocumentReview');
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const frontBlob = await uriToBlob(frontImage!);
+      const backBlob = await uriToBlob(backImage!);
+
+      const formData = new FormData();
+      formData.append('front', frontBlob, 'front.jpg');
+      formData.append('back', backBlob, 'back.jpg');
+
+      await fetch(`http://192.168.1.6:3000/applications/${applicationId}/documents`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      navigation.navigate('DocumentReview', { applicationId });
+    } catch (error) {
+      console.error('Error subiendo documentos:', error);
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -168,11 +199,23 @@ export default function DocumentCaptureScreen() {
 
       {currentImage ? (
         <View style={styles.actionsRow}>
-          <TouchableOpacity style={styles.secondaryButton} onPress={handleRetake}>
+          <TouchableOpacity
+            style={styles.secondaryButton}
+            onPress={handleRetake}
+            disabled={uploading}
+          >
             <Text style={styles.secondaryButtonText}>Volver a tomar</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.primaryButtonSmall} onPress={handleUsePhoto}>
-            <Text style={styles.primaryButtonText}>Usar esta foto</Text>
+          <TouchableOpacity
+            style={styles.primaryButtonSmall}
+            onPress={handleUsePhoto}
+            disabled={uploading}
+          >
+            {uploading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.primaryButtonText}>Usar esta foto</Text>
+            )}
           </TouchableOpacity>
         </View>
       ) : (
@@ -346,6 +389,7 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     borderRadius: 14,
     alignItems: 'center',
+    justifyContent: 'center',
   },
   primaryButtonText: {
     color: '#fff',

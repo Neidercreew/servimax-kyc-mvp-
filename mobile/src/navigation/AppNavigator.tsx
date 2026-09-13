@@ -7,8 +7,8 @@ import DocumentCaptureScreen from '../screens/DocumentCaptureScreen';
 export type RootStackParamList = {
   Welcome: undefined;
   ContactData: undefined;
-  DocumentCapture: undefined;
-  DocumentReview: undefined;
+  DocumentCapture: { applicationId: number };
+  DocumentReview: { applicationId: number };
 };
 
 

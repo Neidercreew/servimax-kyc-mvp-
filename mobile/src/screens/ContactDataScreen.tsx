@@ -24,7 +24,7 @@ export default function ContactDataScreen() {
 
     const data = await response.json();
     console.log('Application creada:', data);
-    navigation.navigate('DocumentCapture');
+    navigation.navigate('DocumentCapture', { applicationId: data.id });
   } catch (error) {
     console.error(error);
   }
