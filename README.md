@@ -178,4 +178,4 @@ Las 3 pantallas que dependen de la red (captura/subida de fotos, OCR/revisión, 
 
 ## Video
 
-[link al video]
+[\[link al video\]](https://drive.google.com/file/d/1sXMmOgfBVXlguF45rV9yXFYijQu9DBLw/view?usp=sharing)
