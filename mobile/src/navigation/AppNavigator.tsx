@@ -1,0 +1,26 @@
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import WelcomeScreen from '../screens/WelcomeScreen';
+import ContactDataScreen from '../screens/ContactDataScreen';
+
+export type RootStackParamList = {
+  Welcome: undefined;
+  ContactData: undefined;
+};
+
+const Stack = createNativeStackNavigator<RootStackParamList>();
+
+export default function AppNavigator() {
+  return (
+    <NavigationContainer>
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="Welcome" component={WelcomeScreen} />
+        <Stack.Screen name="ContactData" component={ContactDataScreen} />
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
+  
+}
+/*todo relacionado a pantallas y navegacion, se crea un stack navigator 
+para poder navegar entre pantallas. el navigation container es el contenedor principal de la app,
+y el stack navigator es el que maneja la navegacion entre pantallas. el screen options es para ocultar el header de cada pantalla.*/
