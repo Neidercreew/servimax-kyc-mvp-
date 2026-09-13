@@ -20,6 +20,20 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "plugins": [
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Servimax necesita acceso a tus fotos para subir tu documento de identidad."
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Servimax necesita acceso a tu cámara para capturar tu documento de identidad."
+        }
+      ]
+    ]
   }
 }

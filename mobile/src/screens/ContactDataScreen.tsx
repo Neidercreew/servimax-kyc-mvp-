@@ -2,16 +2,37 @@ import { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import { colors } from '../theme/colors';
 import ProgressSteps from '../components/ProgressSteps';
-
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { RootStackParamList } from '../navigation/AppNavigator';
+import BackButton from '../components/BackButton';
 
 export default function ContactDataScreen() {
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [city, setCity] = useState('');
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const handleSubmit = async () => {
+  try {
+    const response = await fetch('http://192.168.1.6:3000/applications', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone, email, city }),
+    });
 
+    if (!response.ok) throw new Error('Error al guardar');
+
+    const data = await response.json();
+    console.log('Application creada:', data);
+    navigation.navigate('DocumentCapture');
+  } catch (error) {
+    console.error(error);
+  }
+};
   return (
     
     <View style={styles.container}>
+      <BackButton onPress={() => navigation.goBack()} />
       <ProgressSteps currentStep={0} />
       <Text style={styles.title}>Datos de contacto</Text>
       <Text style={styles.subtitle}>
@@ -45,7 +66,7 @@ export default function ContactDataScreen() {
         onChangeText={setCity}
       />
 
-      <TouchableOpacity style={styles.button}>
+      <TouchableOpacity style={styles.button} onPress={handleSubmit}>
         <Text style={styles.buttonText}>Continuar</Text>
       </TouchableOpacity>
     </View>

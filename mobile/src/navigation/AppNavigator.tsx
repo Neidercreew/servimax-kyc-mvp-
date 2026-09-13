@@ -2,11 +2,15 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import WelcomeScreen from '../screens/WelcomeScreen';
 import ContactDataScreen from '../screens/ContactDataScreen';
+import DocumentCaptureScreen from '../screens/DocumentCaptureScreen';
 
 export type RootStackParamList = {
   Welcome: undefined;
   ContactData: undefined;
+  DocumentCapture: undefined;
+  DocumentReview: undefined;
 };
+
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -16,6 +20,7 @@ export default function AppNavigator() {
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Welcome" component={WelcomeScreen} />
         <Stack.Screen name="ContactData" component={ContactDataScreen} />
+        <Stack.Screen name="DocumentCapture" component={DocumentCaptureScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
