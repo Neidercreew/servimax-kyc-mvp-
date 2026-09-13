@@ -8,12 +8,16 @@ datasource db {
 }
 
 model Application {
-  id             Int      @id @default(autoincrement())
-  phone          String
-  email          String
-  city           String
-  status         String   @default("pending")
-  frontImagePath String?
-  backImagePath  String?
-  createdAt      DateTime @default(now())
+  id              Int      @id @default(autoincrement())
+  phone           String
+  email           String
+  city            String
+  status          String   @default("pending")
+  frontImagePath  String?
+  backImagePath   String?
+  nombres         String?
+  apellidos       String?
+  numeroDocumento String?
+  fechaNacimiento String?
+  createdAt       DateTime @default(now())
 }
