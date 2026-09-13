@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import { colors } from '../theme/colors';
+import ProgressSteps from '../components/ProgressSteps';
 
 
 export default function ContactDataScreen() {
@@ -9,7 +10,9 @@ export default function ContactDataScreen() {
   const [city, setCity] = useState('');
 
   return (
+    
     <View style={styles.container}>
+      <ProgressSteps currentStep={0} />
       <Text style={styles.title}>Datos de contacto</Text>
       <Text style={styles.subtitle}>
         Necesitamos estos datos para iniciar tu registro.
@@ -48,6 +51,7 @@ export default function ContactDataScreen() {
     </View>
   );
 }
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
