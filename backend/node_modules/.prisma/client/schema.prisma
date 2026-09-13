@@ -19,5 +19,8 @@ model Application {
   apellidos       String?
   numeroDocumento String?
   fechaNacimiento String?
+  score           Int?
+  veredicto       String?
+  razones         String?
   createdAt       DateTime @default(now())
 }

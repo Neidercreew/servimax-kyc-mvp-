@@ -77,6 +77,92 @@ app.post('/applications/:id/ocr', async (req, res) => {
   res.json(application);
 });
 
+app.post('/applications/:id/validate', async (req, res) => {
+  const { id } = req.params;
+  const { nombres, apellidos, numeroDocumento, fechaNacimiento } = req.body;
+
+  const existing = await prisma.application.findUnique({
+    where: { id: Number(id) },
+  });
+
+  if (!existing) {
+    return res.status(404).json({ error: 'Solicitud no encontrada' });
+  }
+
+  await new Promise((resolve) => setTimeout(resolve, 1500));
+
+  const documentValid = Math.random() > 0.15;
+  const nameMatch = documentValid ? Math.random() > 0.1 : false;
+
+  const razonesPositivas: string[] = [];
+  const razonesNegativas: string[] = [];
+
+  const datosCompletos = Boolean(
+    existing.phone && existing.email && existing.city &&
+    nombres && apellidos && numeroDocumento && fechaNacimiento
+  );
+
+  let score = 0;
+
+  if (datosCompletos) {
+    score += 20;
+    razonesPositivas.push('Información completa');
+  } else {
+    razonesNegativas.push('Faltan datos por completar');
+  }
+
+  if (nombres && apellidos && numeroDocumento) {
+    score += 20;
+    razonesPositivas.push('Documento leído correctamente');
+  }
+
+  if (documentValid) {
+    score += 30;
+    razonesPositivas.push('Documento validado');
+  } else {
+    razonesNegativas.push('No pudimos validar el documento');
+  }
+
+  score += 15;
+  razonesPositivas.push('Información confirmada');
+
+  const hasAlerts = !nameMatch && documentValid;
+  if (!hasAlerts && documentValid) {
+    score += 15;
+    razonesPositivas.push('Sin alertas');
+  } else if (hasAlerts) {
+    razonesNegativas.push('El nombre no coincide completamente con el documento');
+  }
+
+  let veredicto: string;
+  if (!documentValid) {
+    veredicto = 'not_validated';
+    score = Math.min(score, 40);
+  } else if (hasAlerts || score < 85) {
+    veredicto = 'requires_review';
+  } else {
+    veredicto = 'validated';
+  }
+
+  const razones = [...razonesPositivas, ...razonesNegativas].join('|');
+
+  const application = await prisma.application.update({
+    where: { id: Number(id) },
+    data: {
+      nombres,
+      apellidos,
+      numeroDocumento,
+      fechaNacimiento,
+      score,
+      veredicto,
+      razones,
+      status: 'validated',
+    },
+  });
+
+  res.json(application);
+});
+
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en http://localhost:${PORT}`);
 });

@@ -3,6 +3,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import WelcomeScreen from '../screens/WelcomeScreen';
 import ContactDataScreen from '../screens/ContactDataScreen';
 import DocumentCaptureScreen from '../screens/DocumentCaptureScreen';
+import DocumentReviewScreen from '../screens/DocumentReviewScreen';
 
 export type RootStackParamList = {
   Welcome: undefined;
@@ -21,6 +22,7 @@ export default function AppNavigator() {
         <Stack.Screen name="Welcome" component={WelcomeScreen} />
         <Stack.Screen name="ContactData" component={ContactDataScreen} />
         <Stack.Screen name="DocumentCapture" component={DocumentCaptureScreen} />
+        <Stack.Screen name="DocumentReview" component={DocumentReviewScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
